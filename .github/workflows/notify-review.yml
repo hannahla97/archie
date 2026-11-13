@@ -23,7 +23,6 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.POLL_TOKEN }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-          SLACK_MEMBER_ID: "YOUR_SLACK_MEMBER_ID"
         run: bash .github/scripts/poll-review-requests.sh
 
       - name: Commit updated dedupe state

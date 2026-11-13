@@ -3,7 +3,7 @@
 # reviewer, Slack-notify the NEW ones, and rewrite the state file with the
 # current set. Called by .github/workflows/notify-review.yml.
 #
-# Requires env: GH_TOKEN, SLACK_WEBHOOK_URL, SLACK_MEMBER_ID
+# Requires env: GH_TOKEN, SLACK_WEBHOOK_URL
 set -euo pipefail
 
 STATE_FILE=".github/review-notified.txt"
@@ -44,9 +44,7 @@ while IFS= read -r url; do
 
   jq -n \
     --argjson pr "$pr" \
-    --arg mention "<@${SLACK_MEMBER_ID}>" \
-    '{text: ($mention
-      + " *Review Requested*\n"
+    '{text: ("*Review Requested*\n"
       + "*PR:* <" + $pr.url + "|" + $pr.title + ">\n"
       + "*Repo:* " + $pr.repository.nameWithOwner + "\n"
       + "*Author:* " + $pr.author.login)}' |
