@@ -1,6 +1,0 @@
-https://github.com/SharonAI-Cloud/frankie/pull/60
-https://github.com/SharonAI-Cloud/frankie/pull/61
-https://github.com/SharonAI-Cloud/frankie/pull/63
-https://github.com/SharonAI-Cloud/platform-admin-portal-be/pull/32
-https://github.com/SharonAI-Cloud/platform-admin-portal-fe/pull/4
-https://github.com/picklepawdev/pickle-paw/pull/2
