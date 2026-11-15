@@ -2,14 +2,12 @@ name: Check Pending Review Requests (all repos)
 
 on:
   schedule:
-    # Brisbane time (UTC+10, no DST): runs weekday 7am–6pm Brisbane.
-    # 7am–7pm local spans midnight UTC, so it's split across two crons:
-    # - 21-23 UTC Sun–Thu  = Brisbane Mon–Fri 7–9am (next UTC day)
-    # - 0-8 UTC Mon–Fri    = Brisbane Mon–Fri 10am–6pm
-    # Stable year-round because Brisbane doesn't observe daylight saving.
-    - cron: "0 21-23 * * 0-4"
-    - cron: "0 0-8 * * 1-5"
-  workflow_dispatch: # allow manual runs
+    # Hourly in UTC; the script itself gates to Brisbane weekdays 7am–6pm
+    # (Brisbane = UTC+10, no DST, so the window is stable year-round).
+    # One dumb cron + script guard: skipped schedule slots don't matter,
+    # any hourly run inside the window still does the job.
+    - cron: "0 * * * *"
+  workflow_dispatch: # allow manual runs (script guard skipped for manual runs)
 
 # needed to commit the dedupe state back to the repo
 permissions:
@@ -29,6 +27,8 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.POLL_TOKEN }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          # manual "Run workflow" runs bypass the Brisbane-hours guard
+          SKIP_WORKING_HOURS_GUARD: ${{ github.event_name == 'workflow_dispatch' && '1' || '0' }}
         run: bash .github/scripts/poll-review-requests.sh
 
       - name: Commit updated dedupe state

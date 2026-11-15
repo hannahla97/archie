@@ -8,6 +8,18 @@ set -euo pipefail
 
 STATE_FILE=".github/review-notified.txt"
 
+# --- working-hours guard (Brisbane time, UTC+10, no DST) ----------------
+# Cron fires hourly in UTC; the script decides whether it's "work time".
+# Manual workflow_dispatch runs set this to 1 and skip the guard.
+if [ "${SKIP_WORKING_HOURS_GUARD:-0}" != "1" ]; then
+  hour="$(TZ=Etc/GMT-10 date +%H)"
+  weekday="$(TZ=Etc/GMT-10 date +%u)"   # 1=Mon ... 7=Sun
+  if [ "$weekday" -ge 6 ] || [ "$hour" -lt 7 ] || [ "$hour" -gt 18 ]; then
+    echo "Outside Brisbane Mon-Fri 07:00-18:59 (now: weekday=$weekday hour=$hour). Skipping."
+    exit 0
+  fi
+fi
+
 tmp=$(mktemp -d)
 cleanup() { rm -rf "$tmp"; }
 trap cleanup EXIT
