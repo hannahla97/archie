@@ -25,10 +25,17 @@ cleanup() { rm -rf "$tmp"; }
 trap cleanup EXIT
 
 # --- fetch open PRs requesting my review -------------------------------
+# Only PRs opened MORE THAN 7 days ago — flags dust-collecting reviews.
+# (`created:<YYYY-MM-DD` is exclusive of that date's very start; see
+# https://docs.github.com/en/search-github/searching-on-github/searching-issues-and-pull-requests#search-by-when-an-issue-or-pull-request-was-created)
 # note: this covers DIRECT review requests on you. Team requests
 # (@org/team) do not appear in `review-requested:@me` search results.
+cutoff="$(TZ=Etc/GMT-10 date -v-7d +%Y-%m-%d 2>/dev/null || TZ=Etc/GMT-10 date -d '7 days ago' +%Y-%m-%d)"
+echo "Cutoff: PRs created before $cutoff (older than 7 days)."
+
 gh search prs --state open --review-requested "@me" \
-  --json url,title,repository,author --limit 100 > "$tmp/current.json"
+  --created "<$cutoff" \
+  --json url,title,repository,author,createdAt --limit 100 > "$tmp/current.json"
 
 count=$(jq 'length' "$tmp/current.json")
 
@@ -54,9 +61,14 @@ notified=0
 while IFS= read -r url; do
   pr=$(jq --arg url "$url" '.[] | select(.url == $url)' "$tmp/current.json")
 
+  # whole days since the PR was opened (floor)
+  created="$(jq -r '.createdAt' <<<"$pr")"
+  age_days=$(( ( $(date +%s) - $(date -j -u -f "%Y-%m-%dT%H:%M:%SZ" "$created" +%s 2>/dev/null || date -u -d "$created" +%s) ) / 86400 ))
+
   jq -n \
     --argjson pr "$pr" \
-    '{text: ("*Review Requested*\n"
+    --arg age "$age_days" \
+    '{text: ("*Review Requested* (PR opened " + $age + " day(s) ago)\n"
       + "*PR:* <" + $pr.url + "|" + $pr.title + ">\n"
       + "*Repo:* " + $pr.repository.nameWithOwner + "\n"
       + "*Author:* " + $pr.author.login)}' |
