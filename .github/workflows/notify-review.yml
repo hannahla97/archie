@@ -1,10 +1,8 @@
 name: Check Pending Review Requests (all repos)
 
 on:
-  schedule:
-    - cron: "42 * * * *"
-      timezone: "Australia/Brisbane"
-  workflow_dispatch: # allow manual runs (script guard skipped for manual runs)
+  workflow_dispatch: # manual safety-net fallback; the Cloudflare Worker owns scheduling
+    # (see cloudflare-worker/ — GitHub's own scheduler silently never fired here)
 
 # needed to commit the dedupe state back to the repo
 permissions:
