@@ -11,7 +11,7 @@
  */
 
 export interface Env {
-  KV: KVNamespace;
+  STATE: KVNamespace;
   GH_TOKEN: string;
   SLACK_WEBHOOK_URL: string;
 }
@@ -78,9 +78,9 @@ async function runCheck(env: Env, skipHoursGuard: boolean): Promise<string> {
   const now = pending.map((p) => p.html_url).sort();
 
   // First-ever run: seed silently (don't spam the backlog)
-  const prevRaw = await env.KV.get(STATE_KEY);
+  const prevRaw = await env.STATE.get(STATE_KEY);
   if (prevRaw === null) {
-    await env.KV.put(STATE_KEY, JSON.stringify(now));
+    await env.STATE.put(STATE_KEY, JSON.stringify(now));
     return `First run: seeded state with ${now.length} pending PR(s); no notifications sent.`;
   }
 
@@ -107,7 +107,7 @@ async function runCheck(env: Env, skipHoursGuard: boolean): Promise<string> {
   }
 
   // state := current set (a PR re-requested later re-notifies)
-  await env.KV.put(STATE_KEY, JSON.stringify(now));
+  await env.STATE.put(STATE_KEY, JSON.stringify(now));
   return `Done. New notifications: ${fresh.length} (total pending: ${now.length}).`;
 }
 

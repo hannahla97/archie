@@ -3,9 +3,9 @@ main = "src/index.ts"
 compatibility_date = "2026-11-01"
 
 # Reliable off-peak tick; the worker applies the Brisbane-hours gate itself.
-# Cron triggers are UTC. Minutes 29 chosen to keep predictability; any minute works.
+# Cron triggers are UTC. Minutes 45 chosen to keep predictability; any minute works.
 [triggers]
-crons = ["29 * * * *"]
+crons = ["45 * * * *"]
 
 # Create with:  npx wrangler kv namespace create STATE
 # then paste the id it prints below.
