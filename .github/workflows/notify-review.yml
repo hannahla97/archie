@@ -2,11 +2,7 @@ name: Check Pending Review Requests (all repos)
 
 on:
   schedule:
-    # Hourly in UTC; the script itself gates to Brisbane weekdays 7am–6pm
-    # (Brisbane = UTC+10, no DST, so the window is stable year-round).
-    # One dumb cron + script guard: skipped schedule slots don't matter,
-    # any hourly run inside the window still does the job.
-    - cron: "0 * * * *"
+    - cron: "42 * * * *"
       timezone: "Australia/Brisbane"
   workflow_dispatch: # allow manual runs (script guard skipped for manual runs)
 
