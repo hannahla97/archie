@@ -7,7 +7,7 @@ never firing for this repo (verified: all runs were `workflow_dispatch`, zero
 
 The Worker does the whole job itself — no Actions minutes, no state commits:
 
-1. Hourly cron tick → GitHub search: open PRs, older than 7 days,
+1. Hourly cron tick → GitHub search: open PRs opened within the last 7 days,
    `review-requested:@me`
 2. Dedupe against last-seen URL list in Workers KV
 3. Slack message per new PR (with PR-age in the text)

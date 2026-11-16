@@ -17,9 +17,20 @@ export interface Env {
 }
 
 const STATE_KEY = "seen-pr-urls";
-const MIN_AGE_DAYS = 7;
+const MAX_AGE_DAYS = 7;
 
 // ---- time helpers -----------------------------------------------------------
+
+/** YYYY-MM-DD for (now - MAX_AGE_DAYS) in Brisbane time. */
+function cutoffDate(): string {
+  const d = new Date(Date.now() - MAX_AGE_DAYS * 86400_000);
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Etc/GMT-10",
+    dateStyle: "short",
+  }).formatToParts(d);
+  const p = (t: string) => parts.find((x) => x.type === t)?.value ?? "";
+  return `${p("year")}-${p("month")}-${p("day")}`;
+}
 
 /** Brisbane weekday (1=Mon..7=Sun) and hour (0-23) — UTC+10, no DST. */
 function brisbaneNow(): { weekday: number; hour: number } {
@@ -34,14 +45,6 @@ function brisbaneNow(): { weekday: number; hour: number } {
   return { weekday, hour: parseInt(get("hour"), 10) };
 }
 
-/** YYYY-MM-DD for (now - 7 days) in Brisbane time. */
-function cutoffDate(): string {
-  const d = new Date(Date.now() - MIN_AGE_DAYS * 86400_000);
-  const parts = new Intl.DateTimeFormat("en-CA", { timeZone: "Etc/GMT-10", dateStyle: "short" }).formatToParts(d);
-  const p = (t: string) => parts.find((x) => x.type === t)?.value ?? "";
-  return `${p("year")}-${p("month")}-${p("day")}`;
-}
-
 // ---- main pipeline ------------------------------------------------------------
 
 async function runCheck(env: Env, skipHoursGuard: boolean): Promise<string> {
@@ -53,7 +56,8 @@ async function runCheck(env: Env, skipHoursGuard: boolean): Promise<string> {
     }
   }
 
-  const q = `is:pr is:open review-requested:@me created:<${cutoffDate()}`;
+  // FRESH requests only: PRs opened in the last MAX_AGE_DAYS (Brisbane time).
+  const q = `is:pr is:open review-requested:@me created:>=${cutoffDate()}`;
   const res = await fetch(`https://api.github.com/search/issues?q=${encodeURIComponent(q)}&per_page=100`, {
     headers: {
       Authorization: `Bearer ${env.GH_TOKEN}`,
